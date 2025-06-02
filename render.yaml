@@ -1,0 +1,9 @@
+services:
+  
+- type: web
+  name: TeamDex-back
+  env: docker
+  plan: free
+  repo: https://github.com/Adrimrtz16/TeamDex-back
+  branch: main
+  dockerfilePath: ./Dockerfile
