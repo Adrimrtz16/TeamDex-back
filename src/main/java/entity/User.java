@@ -39,6 +39,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role; // ADMIN, USER
 
+    @Column(nullable = false)
+    private String profilePictureUrl;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Team> teams;
 

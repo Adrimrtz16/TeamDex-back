@@ -70,6 +70,7 @@ public class AuthService {
                             user.getPassword(),
                             user.getEmail(),
                             user.getRole(),
+                            user.getProfilePictureUrl(),
                             user.getTeams() != null ? user.getTeams().stream().map(team ->
                                     new TeamRequest(
                                             team.getId(),
@@ -92,6 +93,7 @@ public class AuthService {
                             user.getPassword(),
                             user.getEmail(),
                             user.getRole(),
+                            user.getProfilePictureUrl(),
                             user.getTeams() != null ? user.getTeams().stream().map(team ->
                                     new TeamRequest(
                                             team.getId(),
