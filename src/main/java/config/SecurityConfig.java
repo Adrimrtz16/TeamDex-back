@@ -24,7 +24,7 @@ import java.util.List;
 @Configuration
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
+    /*private final JwtFilter jwtFilter;
 
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
@@ -43,22 +43,20 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Permitir el acceso a los endpoints pÃºblicos
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        /*.requestMatchers(HttpMethod.POST, "/auth/forgot-password").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/reset-password").permitAll()*/
 
                         .requestMatchers(HttpMethod.PUT, "/auth/{id}").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/auth/{id}").authenticated()
-
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/*", "/swagger-ui.html").permitAll()
 
                         .requestMatchers(HttpMethod.GET, "/teams").permitAll()
                         .requestMatchers(HttpMethod.POST, "/teams").authenticated()
@@ -84,5 +82,7 @@ public class SecurityConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
+    }*/
+
+
 }

@@ -21,6 +21,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @CrossOrigin(origins = "http://localhost:5173")
     public AuthResponse login(@RequestBody AuthLoginRequest request) {
         return authService.login(request);
     }
