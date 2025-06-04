@@ -23,14 +23,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    @CrossOrigin(origins = "http://localhost:5173")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public ResponseEntity<AuthResponse> login(@RequestBody AuthLoginRequest request) {
         System.out.println("Login request received: " + request);
 
         return authService.login(request);
     }
     @PostMapping("/register")
-    @CrossOrigin(origins = "http://localhost:5173")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public ResponseEntity<Map<String,String>> register(@RequestBody AuthRequest request) {
         authService.register(request);
         Map<String,String> body = new HashMap<>();
@@ -39,7 +39,7 @@ public class AuthController {
     }
 
     @GetMapping("/{id}")
-    @CrossOrigin(origins = "http://localhost:5173")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public Object getUserById(@PathVariable Long id) {
         return authService.getUserById(id);
     }
