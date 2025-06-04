@@ -15,5 +15,6 @@ public class AuthRequest {
     private String email;
     private Role role;
     private String profilePictureUrl;
+    private String bio;
     private List<TeamRequest> teams;
 }

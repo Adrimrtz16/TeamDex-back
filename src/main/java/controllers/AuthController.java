@@ -22,7 +22,9 @@ public class AuthController {
 
     @PostMapping("/login")
     @CrossOrigin(origins = "http://localhost:5173")
-    public AuthResponse login(@RequestBody AuthLoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@RequestBody AuthLoginRequest request) {
+        System.out.println("Login request received: " + request);
+
         return authService.login(request);
     }
 

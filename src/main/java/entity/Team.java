@@ -35,6 +35,9 @@ public class Team {
     @Column
     private String pokemon6;
 
+    @Column
+    private String name;
+
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     @JsonBackReference

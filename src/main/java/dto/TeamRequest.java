@@ -13,5 +13,6 @@ public class TeamRequest {
     private String pokemon4;
     private String pokemon5;
     private String pokemon6;
+    private String name;
     private Long userId;
 }

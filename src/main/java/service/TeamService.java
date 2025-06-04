@@ -56,6 +56,7 @@ public class TeamService {
                 request.getPokemon4(),
                 request.getPokemon5(),
                 request.getPokemon6(),
+                request.getName(),
                 user
         );
         Team saved = teamRepository.save(team);
@@ -71,6 +72,7 @@ public class TeamService {
         team.setPokemon4(request.getPokemon4());
         team.setPokemon5(request.getPokemon5());
         team.setPokemon6(request.getPokemon6());
+        team.setName(request.getName());
         Team updated = teamRepository.save(team);
         return toTeamRequest(updated);
     }
@@ -96,6 +98,7 @@ public class TeamService {
                 team.getPokemon4(),
                 team.getPokemon5(),
                 team.getPokemon6(),
+                team.getName(),
                 team.getUser().getId()
         );
     }

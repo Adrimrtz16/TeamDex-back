@@ -30,8 +30,7 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false, unique = true)
-    @NotBlank(message = "El email no puede estar vacío")
+    @Column(unique = true)
     @Email(message = "Formato de email no válido")
     private String email;
 
@@ -41,6 +40,9 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String profilePictureUrl;
+
+    @Column(nullable = false)
+    private String bio;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Team> teams;

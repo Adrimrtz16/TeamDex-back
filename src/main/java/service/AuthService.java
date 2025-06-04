@@ -6,6 +6,8 @@ import dto.AuthResponse;
 import dto.TeamRequest;
 import entity.User;
 import enums.Role;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import repository.UserRepository;
@@ -33,14 +35,15 @@ public class AuthService {
         this.currentUserProvider = currentUserProvider;
     }
 
-    public AuthResponse login(AuthLoginRequest request) { //le paso por parametro lo que me envian por post
+    public ResponseEntity<AuthResponse> login(AuthLoginRequest request) { //le paso por parametro lo que me envian por post
         Optional<User> user = userRepository.findByUsername(request.getUsername()); //cojo el nombre que me han pasado por parametro y uso la funcion para buscarlo
         if (user.isPresent() && passwordEncoder.matches(request.getPassword(),(user.get().getPassword())) ) { //si el usuario existe y la contraseña que me han pasado por parametro coincide con la del usuario
             String token = jwtUtil.generateToken(user.get()); //me genera un token y me lo manda por respuesta
-            return new AuthResponse(token);
+
+            return ResponseEntity.ok(new AuthResponse(token));
         }
-        throw new RuntimeException("Credenciales incorrectas"); //sino da error
-    }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Credenciales incorrectas")); //si no coincide, me devuelve un error 401 Unauthorized
+    }//y me dice que las credenciales son incorrectas
 
     public void register(AuthRequest request) { //le paso por parametro los datos
         if (userRepository.findByUsername(request.getUsername()).isPresent()) { //busco el nombre para ver si ya existe el usuario
@@ -50,6 +53,7 @@ public class AuthService {
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
+        user.setProfilePictureUrl(request.getProfilePictureUrl());
 
         Role role = (request.getRole() == null || request.getRole().describeConstable().isEmpty()) ? Role.USER : request.getRole();
         user.setRole(role);
@@ -71,6 +75,7 @@ public class AuthService {
                             user.getEmail(),
                             user.getRole(),
                             user.getProfilePictureUrl(),
+                            user.getBio(),
                             user.getTeams() != null ? user.getTeams().stream().map(team ->
                                     new TeamRequest(
                                             team.getId(),
@@ -80,6 +85,7 @@ public class AuthService {
                                             team.getPokemon4(),
                                             team.getPokemon5(),
                                             team.getPokemon6(),
+                                            team.getName(),
                                             team.getUser().getId()
                                     )
                             ).collect(Collectors.toList()) : List.of()
@@ -94,6 +100,7 @@ public class AuthService {
                             user.getEmail(),
                             user.getRole(),
                             user.getProfilePictureUrl(),
+                            user.getBio(),
                             user.getTeams() != null ? user.getTeams().stream().map(team ->
                                     new TeamRequest(
                                             team.getId(),
@@ -103,6 +110,7 @@ public class AuthService {
                                             team.getPokemon4(),
                                             team.getPokemon5(),
                                             team.getPokemon6(),
+                                            team.getName(),
                                             team.getUser().getId()
                                     )
                             ).collect(Collectors.toList()) : List.of()
