@@ -1,9 +1,6 @@
 package service;
 
-import dto.AuthLoginRequest;
-import dto.AuthRequest;
-import dto.AuthResponse;
-import dto.TeamRequest;
+import dto.*;
 import entity.User;
 import enums.Role;
 import org.springframework.http.HttpStatus;
@@ -45,80 +42,102 @@ public class AuthService {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Credenciales incorrectas")); //si no coincide, me devuelve un error 401 Unauthorized
     }//y me dice que las credenciales son incorrectas
 
-    public void register(AuthRequest request) { //le paso por parametro los datos
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) { //busco el nombre para ver si ya existe el usuario
-            throw new RuntimeException("El usuario ya existe"); //si existe salta un error
+    public void register(AuthRequest request) {
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("El usuario ya existe");
         }
-        User user = new User(); //sino crea un nuevo usuario y asigna los datos
+        User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setProfilePictureUrl(request.getProfilePictureUrl());
-
-        Role role = (request.getRole() == null || request.getRole().describeConstable().isEmpty()) ? Role.USER : request.getRole();
+        user.setBio("Joder, que calvo está Folagor");
+        Role role = (request.getRole() == null) ? Role.USER : request.getRole();
         user.setRole(role);
-
         userRepository.save(user);
     }
 
-    public List<AuthRequest> getAllUsers() {
+    // En AuthService (o UserService)
+    public Object getUserById(Long id) {
         User currentUser = currentUserProvider.getCurrentUser();
         if (currentUser == null) {
             throw new RuntimeException("No estás autenticado");
         }
+
+        // Busca el usuario objetivo
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // 1) Si es ADMIN: devuelve FullUserResponse para cualquiera
         if (currentUser.getRole() == Role.ADMIN) {
-            return userRepository.findAll().stream().map(user ->
-                    new AuthRequest(
-                            user.getId(),
-                            user.getUsername(),
-                            user.getPassword(),
-                            user.getEmail(),
-                            user.getRole(),
-                            user.getProfilePictureUrl(),
-                            user.getBio(),
-                            user.getTeams() != null ? user.getTeams().stream().map(team ->
-                                    new TeamRequest(
-                                            team.getId(),
-                                            team.getPokemon1(),
-                                            team.getPokemon2(),
-                                            team.getPokemon3(),
-                                            team.getPokemon4(),
-                                            team.getPokemon5(),
-                                            team.getPokemon6(),
-                                            team.getName(),
-                                            team.getUser().getId()
-                                    )
-                            ).collect(Collectors.toList()) : List.of()
-                    )
-            ).collect(Collectors.toList());
-        } else if (currentUser.getRole() == Role.USER && !currentUser.getUsername().equals("anonymous")) {
-            return userRepository.findByUsername(currentUser.getUsername()).stream().map(user ->
-                    new AuthRequest(
-                            user.getId(),
-                            user.getUsername(),
-                            user.getPassword(),
-                            user.getEmail(),
-                            user.getRole(),
-                            user.getProfilePictureUrl(),
-                            user.getBio(),
-                            user.getTeams() != null ? user.getTeams().stream().map(team ->
-                                    new TeamRequest(
-                                            team.getId(),
-                                            team.getPokemon1(),
-                                            team.getPokemon2(),
-                                            team.getPokemon3(),
-                                            team.getPokemon4(),
-                                            team.getPokemon5(),
-                                            team.getPokemon6(),
-                                            team.getName(),
-                                            team.getUser().getId()
-                                    )
-                            ).collect(Collectors.toList()) : List.of()
-                    )
-            ).collect(Collectors.toList());
-        } else {
-            throw new RuntimeException("No tienes autorización para mostrar los usuarios");
+            return mapToFull(target);
         }
+
+        // 2) Si es USER y pide su propio perfil: FullUserResponse
+        if (currentUser.getRole() == Role.USER && currentUser.getId().equals(id)) {
+            return mapToFull(target);
+        }
+
+        // 3) Si es USER y pide perfil ajeno: PublicUserResponse
+        if (currentUser.getRole() == Role.USER) {
+            return mapToPublic(target);
+        }
+
+        // En cualquier otro caso (por ejemplo, rol distinto o anónimo)
+        throw new RuntimeException("No tienes autorización");
+    }
+
+    private AuthRequest mapToFull(User user) {
+        List<TeamRequest> equipos = user.getTeams() != null
+                ? user.getTeams().stream()
+                .map(team -> new TeamRequest(
+                        team.getId(),
+                        team.getPokemon1(),
+                        team.getPokemon2(),
+                        team.getPokemon3(),
+                        team.getPokemon4(),
+                        team.getPokemon5(),
+                        team.getPokemon6(),
+                        team.getName(),
+                        team.getUser().getId()
+                ))
+                .collect(Collectors.toList())
+                : List.of();
+        return new AuthRequest(
+                user.getId(),
+                user.getUsername(),
+                user.getPassword(),
+                user.getEmail(),
+                user.getRole(),
+                user.getProfilePictureUrl(),
+                user.getBio(),
+                equipos
+        );
+    }
+
+    private PublicUserRequest mapToPublic(User user) {
+        List<TeamRequest> equipos = user.getTeams() != null
+                ? user.getTeams().stream()
+                .map(team -> new TeamRequest(
+                        team.getId(),
+                        team.getPokemon1(),
+                        team.getPokemon2(),
+                        team.getPokemon3(),
+                        team.getPokemon4(),
+                        team.getPokemon5(),
+                        team.getPokemon6(),
+                        team.getName(),
+                        team.getUser().getId()
+                ))
+                .collect(Collectors.toList())
+                : List.of();
+        return new PublicUserRequest(
+                user.getId(),
+                user.getUsername(),
+                user.getProfilePictureUrl(),
+                user.getBio(),
+                equipos
+        );
     }
 
     public void deleteUser(Long userId) {

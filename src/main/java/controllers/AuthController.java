@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import service.AuthService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -27,15 +29,19 @@ public class AuthController {
 
         return authService.login(request);
     }
-
     @PostMapping("/register")
-    public void register(@RequestBody AuthRequest request) {
+    @CrossOrigin(origins = "http://localhost:5173")
+    public ResponseEntity<Map<String,String>> register(@RequestBody AuthRequest request) {
         authService.register(request);
+        Map<String,String> body = new HashMap<>();
+        body.put("message", "Usuario registrado correctamente");
+        return ResponseEntity.ok(body);
     }
 
-    @GetMapping
-    public List<AuthRequest> getAllUsers() {
-        return authService.getAllUsers();
+    @GetMapping("/{id}")
+    @CrossOrigin(origins = "http://localhost:5173")
+    public Object getUserById(@PathVariable Long id) {
+        return authService.getUserById(id);
     }
 
     @PutMapping("/{id}")
