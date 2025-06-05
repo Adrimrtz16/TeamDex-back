@@ -55,7 +55,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/auth/{id}").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/auth/public").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/auth/userWithTeams/{id}").permitAll()
+
+                        .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
+
+                        .requestMatchers(HttpMethod.GET, "/auth/{id}").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/auth/{id}").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/auth/{id}").authenticated()
 

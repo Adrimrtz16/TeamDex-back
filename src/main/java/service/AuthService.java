@@ -60,31 +60,58 @@ public class AuthService {
     // En AuthService (o UserService)
     public Object getUserById(Long id) {
         User currentUser = currentUserProvider.getCurrentUser();
-        if (currentUser == null) {
-            throw new RuntimeException("No estás autenticado");
-        }
 
         // Busca el usuario objetivo
         User target = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // 1) Si es ADMIN: devuelve FullUserResponse para cualquiera
+        // Si no hay usuario autenticado, devuelve el perfil público
+        if (currentUser == null) {
+            return mapToPublic(target);
+        }
+
+        // Si es ADMIN: devuelve FullUserResponse para cualquiera
         if (currentUser.getRole() == Role.ADMIN) {
             return mapToFull(target);
         }
 
-        // 2) Si es USER y pide su propio perfil: FullUserResponse
+        // Si es USER y pide su propio perfil: FullUserResponse
         if (currentUser.getRole() == Role.USER && currentUser.getId().equals(id)) {
             return mapToFull(target);
         }
 
-        // 3) Si es USER y pide perfil ajeno: PublicUserResponse
+        // Si es USER y pide perfil ajeno: PublicUserResponse
         if (currentUser.getRole() == Role.USER) {
             return mapToPublic(target);
         }
 
         // En cualquier otro caso (por ejemplo, rol distinto o anónimo)
         throw new RuntimeException("No tienes autorización");
+    }
+
+    public Object getUserWithTeamsById(Long id) {
+        // Busca el usuario objetivo
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        return mapToPublicWithTeams(target);
+
+    }
+
+    public List<PublicUserRequest> getFirst20PublicUsers() {
+        return userRepository.findAll().stream()
+                .limit(20)
+                .map(this::mapToPublic)
+                .collect(Collectors.toList());
+    }
+
+    public Object getMe() {
+        User currentUser = currentUserProvider.getCurrentUser();
+        if (currentUser == null) {
+            throw new RuntimeException("No autenticado");
+        }
+        // Puedes devolver el perfil completo o público según tu lógica
+        return mapToFull(currentUser);
     }
 
     private AuthRequest mapToFull(User user) {
@@ -116,6 +143,15 @@ public class AuthService {
     }
 
     private PublicUserRequest mapToPublic(User user) {
+        return new PublicUserRequest(
+                user.getId(),
+                user.getUsername(),
+                user.getProfilePictureUrl(),
+                user.getBio()
+        );
+    }
+
+    private PublicUserWithTeamsRequest mapToPublicWithTeams(User user) {
         List<TeamRequest> equipos = user.getTeams() != null
                 ? user.getTeams().stream()
                 .map(team -> new TeamRequest(
@@ -131,7 +167,7 @@ public class AuthService {
                 ))
                 .collect(Collectors.toList())
                 : List.of();
-        return new PublicUserRequest(
+        return new PublicUserWithTeamsRequest(
                 user.getId(),
                 user.getUsername(),
                 user.getProfilePictureUrl(),

@@ -3,6 +3,8 @@ package controllers;
 import dto.AuthLoginRequest;
 import dto.AuthRequest;
 import dto.AuthResponse;
+import dto.PublicUserRequest;
+import dto.PublicUserWithTeamsRequest;
 import entity.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,18 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @GetMapping("/public")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
+    public List<PublicUserRequest> getFirst20PublicUsers() {
+        return authService.getFirst20PublicUsers();
+    }
+
+    @GetMapping("/userWithTeams/{id}")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
+    public PublicUserWithTeamsRequest getUserWithTeamsById(@PathVariable Long id) {
+        return (PublicUserWithTeamsRequest) authService.getUserWithTeamsById(id);
     }
 
     @PostMapping("/login")
@@ -42,6 +56,12 @@ public class AuthController {
     @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public Object getUserById(@PathVariable Long id) {
         return authService.getUserById(id);
+    }
+
+    @GetMapping("/me")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
+    public Object getMe() {
+        return authService.getMe();
     }
 
     @PutMapping("/{id}")
