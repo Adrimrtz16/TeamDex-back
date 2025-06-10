@@ -19,7 +19,8 @@ public class TeamController {
         this.teamService = teamService;
     }
 
-    @GetMapping
+    @GetMapping("/get")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public List<TeamRequest> getAllTeams() {
         return teamService.getAllTeams();
     }
@@ -29,17 +30,20 @@ public class TeamController {
         return teamService.getTeamById(id);
     }
 
-    @PostMapping
+    @PostMapping("/create")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public TeamRequest createTeam(@RequestBody TeamRequest request) {
         return teamService.createTeam(request);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public TeamRequest updateTeam(@PathVariable Long id, @RequestBody TeamRequest request) {
         return teamService.updateTeam(id, request);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public void deleteTeam(@PathVariable Long id) {
         teamService.deleteTeam(id);
     }

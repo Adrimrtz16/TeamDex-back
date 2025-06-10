@@ -11,24 +11,22 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET_KEY = "TuClaveSecretaSuperSeguraParaJWT123456";
-    private static final long EXPIRATION_TIME = 3600000; //1 Hora
+    private static final String SECRET_KEY = "ClaveSecretaParaEntrenadorPokemon1234567890";
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
     }
 
-    public String generateToken(User user) { //generar el token
+    public String generateToken(User user) { // Se encarga de generar el token JWT
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .claim("role", user.getRole().name())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String extractUsername(String token) { //extraer el nombre del usuario
+    public String extractUsername(String token) { // Extrae el username
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())
                 .build()

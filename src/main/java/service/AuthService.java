@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository; //llamo a donde se almacenan los usuarios
-    private final PasswordEncoder passwordEncoder; //llamo al codificador de contraseñas
-    private final JwtUtil jwtUtil; //llamo a jwt
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
     private final CurrentUserProvider currentUserProvider;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil, CurrentUserProvider currentUserProvider ) {
@@ -32,15 +32,15 @@ public class AuthService {
         this.currentUserProvider = currentUserProvider;
     }
 
-    public ResponseEntity<AuthResponse> login(AuthLoginRequest request) { //le paso por parametro lo que me envian por post
-        Optional<User> user = userRepository.findByUsername(request.getUsername()); //cojo el nombre que me han pasado por parametro y uso la funcion para buscarlo
-        if (user.isPresent() && passwordEncoder.matches(request.getPassword(),(user.get().getPassword())) ) { //si el usuario existe y la contraseña que me han pasado por parametro coincide con la del usuario
-            String token = jwtUtil.generateToken(user.get()); //me genera un token y me lo manda por respuesta
+    public ResponseEntity<AuthResponse> login(AuthLoginRequest request) {
+        Optional<User> user = userRepository.findByUsername(request.getUsername());
+        if (user.isPresent() && passwordEncoder.matches(request.getPassword(),(user.get().getPassword())) ) {
+            String token = jwtUtil.generateToken(user.get());
 
             return ResponseEntity.ok(new AuthResponse(token));
         }
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Credenciales incorrectas")); //si no coincide, me devuelve un error 401 Unauthorized
-    }//y me dice que las credenciales son incorrectas
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new AuthResponse("Credenciales incorrectas"));
+    }
 
     public void register(AuthRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
@@ -51,46 +51,38 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEmail(request.getEmail());
         user.setProfilePictureUrl(request.getProfilePictureUrl());
-        user.setBio("Joder, que calvo está Folagor");
+        user.setBio("Voy a ser el mejor entrenador Pokémon del mundo! Wolfie no es nadie a mi lado.");
         Role role = (request.getRole() == null) ? Role.USER : request.getRole();
         user.setRole(role);
         userRepository.save(user);
     }
 
-    // En AuthService (o UserService)
     public Object getUserById(Long id) {
         User currentUser = currentUserProvider.getCurrentUser();
 
-        // Busca el usuario objetivo
         User target = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        // Si no hay usuario autenticado, devuelve el perfil público
         if (currentUser == null) {
             return mapToPublic(target);
         }
 
-        // Si es ADMIN: devuelve FullUserResponse para cualquiera
         if (currentUser.getRole() == Role.ADMIN) {
             return mapToFull(target);
         }
 
-        // Si es USER y pide su propio perfil: FullUserResponse
         if (currentUser.getRole() == Role.USER && currentUser.getId().equals(id)) {
             return mapToFull(target);
         }
 
-        // Si es USER y pide perfil ajeno: PublicUserResponse
         if (currentUser.getRole() == Role.USER) {
             return mapToPublic(target);
         }
 
-        // En cualquier otro caso (por ejemplo, rol distinto o anónimo)
         throw new RuntimeException("No tienes autorización");
     }
 
     public Object getUserWithTeamsById(Long id) {
-        // Busca el usuario objetivo
         User target = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -110,10 +102,10 @@ public class AuthService {
         if (currentUser == null) {
             throw new RuntimeException("No autenticado");
         }
-        // Puedes devolver el perfil completo o público según tu lógica
         return mapToFull(currentUser);
     }
 
+    // Metodo para mapear un usuario a AuthRequest (para respuestas completas)
     private AuthRequest mapToFull(User user) {
         List<TeamRequest> equipos = user.getTeams() != null
                 ? user.getTeams().stream()
@@ -142,6 +134,7 @@ public class AuthService {
         );
     }
 
+    // Metodo para mapear un usuario a PublicUserRequest (parcialmente)
     private PublicUserRequest mapToPublic(User user) {
         return new PublicUserRequest(
                 user.getId(),
@@ -151,6 +144,7 @@ public class AuthService {
         );
     }
 
+    // Metodo para mapear un usuario a PublicUserWithTeamsRequest (con equipos)
     private PublicUserWithTeamsRequest mapToPublicWithTeams(User user) {
         List<TeamRequest> equipos = user.getTeams() != null
                 ? user.getTeams().stream()
@@ -176,80 +170,14 @@ public class AuthService {
         );
     }
 
-    public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("usuario no encontrado"));
+    public void updateBio(Long id, String bio) {
         User currentUser = currentUserProvider.getCurrentUser();
-        if (currentUser == null) {
-            throw new RuntimeException("No estás autenticado");
+        if (currentUser == null || !currentUser.getId().equals(id)) {
+            throw new RuntimeException("Usuario no autenticado o no autorizado");
         }
-        if (currentUser.getRole() == Role.ADMIN) {
-            userRepository.delete(user);
-        } else {
-            throw new RuntimeException("No tienes autorización para borrar este usuario");
-        }
-    }
-
-    public User updateUser(Long userId, AuthRequest authRequest) {
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("No existe un usuario con ese id"));
-        User currentUser = currentUserProvider.getCurrentUser();
-        if (currentUser == null) {
-            throw new RuntimeException("No estás autenticado");
-        }
-
-        if (existingUser.getId().equals(currentUser.getId()) || currentUser.getRole() == Role.ADMIN) {
-
-            existingUser.setUsername(authRequest.getUsername());
-            if (authRequest.getPassword() != null && !authRequest.getPassword().isEmpty()) {
-                existingUser.setPassword(passwordEncoder.encode(authRequest.getPassword()));
-            }
-            existingUser.setEmail(authRequest.getEmail());
-
-            if (currentUser.getRole() == Role.ADMIN) {
-                existingUser.setRole(authRequest.getRole());
-            }
-
-            return userRepository.save(existingUser);
-        }
-        throw new RuntimeException("No tienes autorización para actualizar este usuario");
-    }
-
-    /*public void sendPasswordResetToken(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("No existe usuario con ese email"));
-
-        String token = UUID.randomUUID().toString();
-        Date expiration = new Date(System.currentTimeMillis() + 1000 * 60 * 30); // 30 min
-
-        PasswordResetToken resetToken = new PasswordResetToken();
-        resetToken.setToken(token);
-        resetToken.setUser(user);
-        resetToken.setExpirationDate(expiration);
-        passwordResetTokenRepository.save(resetToken);
-
-        String link = "https://revoluxburger-frontend.vercel.app/reset-password?token=" + token; //cambia esto por tu URL real
-        String body = "Hola " + user.getUsername() + ",\n\n" +
-                "Para restablecer tu contraseña, haz clic en el siguiente enlace:\n" + link + "\n\n" +
-                "Este enlace expirará en 30 minutos.";
-
-        emailService.sendEmail(user.getEmail(), "Restablecer contraseña", body);
-    }
-
-    public void resetPassword(String token, String nuevaPassword) {
-        PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token inválido"));
-
-        if (resetToken.isExpired()) {
-            throw new RuntimeException("El token ha expirado");
-        }
-
-        User user = resetToken.getUser();
-        user.setPassword(passwordEncoder.encode(nuevaPassword));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        user.setBio(bio);
         userRepository.save(user);
-
-        passwordResetTokenRepository.delete(resetToken); // borra token usado
     }
-    */
-
 }

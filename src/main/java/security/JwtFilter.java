@@ -29,13 +29,6 @@ public class JwtFilter extends OncePerRequestFilter {
     }
 
     @Override
-    // Este metodo excluye ciertas rutas (como Swagger) del filtro para que no sean procesadas.
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getRequestURI();
-        return path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs");
-    }
-
-    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
@@ -57,10 +50,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             username = jwtUtil.extractUsername(token);
-        } catch (ExpiredJwtException e) {
-            // Token expirado → seguir sin autenticar
-            chain.doFilter(request, response);
-            return;
         } catch (Exception e) {
             // Token inválido → seguir sin autenticar
             chain.doFilter(request, response);

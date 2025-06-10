@@ -42,14 +42,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> {}) // Habilita CORS
-                .csrf(csrf -> csrf.disable()) // Desactiva CSRF (seguro para APIs)
+                .cors(cors -> {})
+                .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        // Permitir el acceso a los endpoints pÃºblicos
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
 
                         .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
@@ -61,12 +60,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/auth/me").authenticated()
 
                         .requestMatchers(HttpMethod.GET, "/auth/{id}").permitAll()
-                        .requestMatchers(HttpMethod.PUT, "/auth/{id}").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/auth/{id}").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/auth/update/bio/{id}").authenticated()
 
-                        .requestMatchers(HttpMethod.GET, "/teams").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/teams").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/teams/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/teams/get").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/create").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/update/{id}").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/delete/{id}").authenticated()
 
                         .anyRequest().authenticated()
                 )
@@ -76,7 +75,6 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        System.out.println("CORS configuration initialized");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",

@@ -43,7 +43,7 @@ public class TeamService {
 
     public TeamRequest createTeam(TeamRequest request) {
         User user = currectuserProvider.getCurrentUser();
-        if(user != null) {
+        if (user != null) {
             request.setUserId(user.getId());
         } else {
             throw new RuntimeException("Usuario no autenticado");
@@ -82,7 +82,9 @@ public class TeamService {
             throw new RuntimeException("Equipo no encontrado");
         }
         User user = currectuserProvider.getCurrentUser();
-        if(user.getRole()== Role.ADMIN || user.getTeams().stream().anyMatch(team -> team.getId().equals(id))) {
+        boolean esAdmin = user.getRole() == Role.ADMIN;
+        boolean esPropietario = teamRepository.existsByIdAndUserId(id, user.getId());
+        if (esAdmin || esPropietario) {
             teamRepository.deleteById(id);
         } else {
             throw new RuntimeException("Usuario no autorizado para eliminar este equipo");

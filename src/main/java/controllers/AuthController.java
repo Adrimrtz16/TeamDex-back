@@ -5,6 +5,7 @@ import dto.AuthRequest;
 import dto.AuthResponse;
 import dto.PublicUserRequest;
 import dto.PublicUserWithTeamsRequest;
+import dto.BioRequest;
 import entity.User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
@@ -64,27 +65,13 @@ public class AuthController {
         return authService.getMe();
     }
 
-    @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody AuthRequest authRequest) {
-        return authService.updateUser(id, authRequest);
+    @PutMapping("/update/bio/{id}")
+    @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
+    public Object updateBio(@PathVariable Long id, @RequestBody BioRequest request) {
+        authService.updateBio(id, request.getBio());
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Biografía actualizada correctamente");
+        return response;
     }
-
-    @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
-        authService.deleteUser(id);
-    }
-
-    /*@PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestBody ForgotPasswordRequest request) {
-        authService.sendPasswordResetToken(request.getEmail());
-        return ResponseEntity.ok("Correo de recuperación enviado");
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<String> resetPassword(@RequestBody ResetPasswordRequest request) {
-        authService.resetPassword(request.getToken(), request.getNewPassword());
-        return ResponseEntity.ok("Contraseña actualizada correctamente");
-    }*/
-
 
 }

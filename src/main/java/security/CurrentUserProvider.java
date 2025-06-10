@@ -17,7 +17,7 @@ public class CurrentUserProvider {
     public User getCurrentUser() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null  || !authentication.isAuthenticated() || authentication.getPrincipal().equals("anonymousUser")) {
-            return null; // No autenticado → para que reserve como anonymous
+            return null;
         }
 
         String username = authentication.getName();
