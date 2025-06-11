@@ -51,7 +51,6 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             username = jwtUtil.extractUsername(token);
         } catch (Exception e) {
-            // Token inválido → seguir sin autenticar
             chain.doFilter(request, response);
             return;
         }
