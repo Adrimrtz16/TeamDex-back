@@ -22,6 +22,7 @@ public class DataInitializer implements CommandLineRunner {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Inicializa datos de prueba al arrancar la aplicación
     @Override
     public void run(String... args) {
         if (userRepository.findByUsername("WolfieGlick").isEmpty()) {
