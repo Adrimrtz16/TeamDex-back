@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface TeamRepository extends JpaRepository<Team, Long> {
     boolean existsByIdAndUserId(Long teamId, Long userId);
+    List<Team> findTop15ByOrderByIdDesc();
 }

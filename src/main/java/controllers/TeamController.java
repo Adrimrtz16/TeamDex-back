@@ -22,7 +22,7 @@ public class TeamController {
     @GetMapping("/get")
     @CrossOrigin(origins = {"http://localhost:5173", "https://team-dex-front.vercel.app"})
     public List<TeamRequest> getAllTeams() {
-        return teamService.getAllTeams();
+        return teamService.getRecentTeams();
     }
 
     @GetMapping("/{id}")

@@ -29,8 +29,8 @@ public class TeamService {
         this.currectuserProvider = currectuserProvider;
     }
 
-    public List<TeamRequest> getAllTeams() {
-        return teamRepository.findAll().stream()
+    public List<TeamRequest> getRecentTeams() {
+        return teamRepository.findTop15ByOrderByIdDesc().stream()
                 .map(this::toTeamRequest)
                 .collect(Collectors.toList());
     }
