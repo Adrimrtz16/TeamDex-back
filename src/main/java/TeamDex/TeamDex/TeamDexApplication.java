@@ -12,6 +12,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EntityScan(basePackages = "entity")
 @ComponentScan(basePackages = {"security", "config", "controllers", "service"})
 @EnableJpaRepositories(basePackages = "repository")
+//
 public class TeamDexApplication {
 
 	public static void main(String[] args) {
